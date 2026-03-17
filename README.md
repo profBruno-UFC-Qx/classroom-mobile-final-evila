@@ -1,28 +1,24 @@
-# Proposta de aplicativo
+# :checkered_flag: NOME DO PROJETO
 
-## Equipe
-* **Nome do Aluno(a) 1:** [Seu nome e matrícula]
-* **Nome do Aluno(a) 2:** [Seu nome e matrícula]
-* **Nome do Aluno(a) 3:** [Seu nome e matrícula]
-* ...
+Breve descrição do que o seu projeto faz.
 
----
+## :technologist: Membros da equipe
 
-## Título do Projeto
-[Escolha um título criativo e descritivo para o seu projeto.]
+Matrícula, nome e curso dos participantes.
 
-## Descrição do Projeto
-[Descreva em 2-3 parágrafos o que o seu projeto faz. Qual é o problema que ele resolve? Quem é o público-alvo? Quais são as principais funcionalidades?]
+## :bulb: Objetivo Geral
+Descrever o objetivo de geral do projeto
 
----
+## :eyes: Público-Alvo
+Público-alvo do projeto
 
-## Funcionalidades Principais
-[Liste as principais funcionalidades do projeto. Use caixas de seleção para que a equipe possa marcar as concluídas nas próximas etapas.]
+## :star2: Impacto Esperado
+Descreva o impacto esperado do projeto em relação ao público alvo
 
-- [ ] Funcionalidade 1: [Breve descrição da funcionalidade]
-- [ ] Funcionalidade 2: [Breve descrição da funcionalidade]
-- [ ] Funcionalidade 3: [Breve descrição da funcionalidade]
-- [ ] ...
+
+## :triangular_flag_on_post:	 Principais funcionalidades da aplicação
+
+Descreva ou liste brevemente as principais funcionalidades da aplicação que será desenvolvida. 
 
 ---
 
