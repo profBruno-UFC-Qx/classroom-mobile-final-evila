@@ -6,7 +6,7 @@ Um aplicativo focado em conectar estudantes da UFC Quixadá e IFCE para o compar
 
 ## :technologist: Membros da equipe
 
-554162 - Évila Maria Vasconcelos de Araújo
+554162 - Évila Maria Vasconcelos de Araújo (Grade Curricular de 2013)
 
 ## :bulb: Objetivo Geral
 O app visa resolver a atual fragmentação de informações, acabando com a dependência de anúncios informais espalhados por dezenas de grupos de WhatsApp — que frequentemente são desconhecidos ou de difícil acesso para os alunos recém-chegados. Além disso, o projeto busca aplicar conceitos avançados de desenvolvimento mobile, como persistência de dados, consumo de APIs e geolocalização, entregando uma solução tecnológica alinhada à logística urbana e climática de Quixadá.
