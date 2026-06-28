@@ -51,7 +51,7 @@ fun DetalhesScreen(navController: NavController) {
                 contentPadding = PaddingValues(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(imovel.imagens) { urlImagem ->
+                items(listOfNotNull(imovel.fotoUri)) { urlImagem ->
                     AsyncImage(
                         model = urlImagem,
                         contentDescription = "Foto do local",
@@ -65,20 +65,20 @@ fun DetalhesScreen(navController: NavController) {
 
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 Text(text = imovel.titulo, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                Text(text = imovel.preco, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                Text(text = "R$ ${imovel.preco}", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = imovel.rua)
+                    Text(text = imovel.endereco)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.Bed, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "${imovel.numQuartos} quarto(s)")
+                    Text(text = "${imovel.quantidadeQuartos} quarto(s)")
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -86,17 +86,15 @@ fun DetalhesScreen(navController: NavController) {
                 Text(text = "Incluso no valor:", fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (imovel.incluiAgua) AssistChip(onClick = {}, label = { Text("Água") }, leadingIcon = { Icon(Icons.Outlined.WaterDrop, null) })
-                    if (imovel.incluiEnergia) AssistChip(onClick = {}, label = { Text("Energia") }, leadingIcon = { Icon(Icons.Outlined.Bolt, null) })
-                    if (imovel.incluiInternet) AssistChip(onClick = {}, label = { Text("Internet") }, leadingIcon = { Icon(Icons.Outlined.Wifi, null) })
+                    if (imovel.contasInclusas) AssistChip(onClick = {}, label = { Text("Contas Inclusas") }, leadingIcon = { Icon(Icons.Outlined.WaterDrop, null) })
                 }
-                if (!imovel.incluiAgua && !imovel.incluiEnergia && !imovel.incluiInternet) {
+                if (!imovel.contasInclusas) {
                     Text(text = "Nenhuma conta inclusa no aluguel.", style = MaterialTheme.typography.bodyMedium)
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(text = "Sobre o local:", fontWeight = FontWeight.Bold)
-                Text(text = imovel.detalhes)
+                Text(text = imovel.detalhesOpcionais)
 
                 Spacer(modifier = Modifier.height(32.dp))
                 Button(

@@ -63,13 +63,13 @@ fun FeedScreen(navController: NavController) {
                     onClick = { scope.launch { drawerState.close() } },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
-                NavigationDrawerItem(
+                /*NavigationDrawerItem(
                     icon = { Icon(Icons.Outlined.DarkMode, contentDescription = "Modo Noturno") },
                     label = { Text("Modo Noturno") },
                     selected = false,
                     onClick = { scope.launch { drawerState.close() } },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                )
+                )*/
             }
         }
     ) {
@@ -106,7 +106,7 @@ fun FeedScreen(navController: NavController) {
                     ) {
                         Column {
                             AsyncImage(
-                                model = imovel.imagens.firstOrNull(),
+                                model = imovel.fotoUri,
                                 contentDescription = "Foto do imóvel",
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -120,7 +120,7 @@ fun FeedScreen(navController: NavController) {
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text(text = imovel.titulo, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                                    Text(text = imovel.preco, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                    Text(text = "R$ ${imovel.preco}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                                 }
 
                                 Spacer(modifier = Modifier.height(12.dp))
@@ -128,11 +128,11 @@ fun FeedScreen(navController: NavController) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Outlined.DirectionsBus, contentDescription = "Ônibus", modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.secondary)
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text(text = imovel.tempoOnibus, style = MaterialTheme.typography.bodyMedium)
+                                    Text(text = if (imovel.proximoAoTransporte) "Perto do transporte" else "Longe do transporte", style = MaterialTheme.typography.bodyMedium)
 
                                     Spacer(modifier = Modifier.width(16.dp))
 
-                                    if (imovel.ventilado) {
+                                    if (imovel.ehArejado) {
                                         Icon(Icons.Outlined.Air, contentDescription = "Ventilado", modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.secondary)
                                         Spacer(modifier = Modifier.width(4.dp))
                                         Text(text = "Bem ventilado", style = MaterialTheme.typography.bodyMedium)

@@ -19,20 +19,31 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.homemates.model.Imovel
+import com.example.homemates.viewmodel.ImovelViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CadastroScreen(navController: NavController) {
+fun CadastroScreen(
+    navController: NavController,
+    imovelViewModel: ImovelViewModel = viewModel(factory = ImovelViewModel.Factory)
+) {
     var titulo by remember { mutableStateOf("") }
     var preco by remember { mutableStateOf("") }
     var rua by remember { mutableStateOf("") }
     var quartos by remember { mutableStateOf("") }
+    var contato by remember { mutableStateOf("") } // Novo campo para o WhatsApp/Telefone
 
-    // Estados dos interruptores (Switches)
     var incluiAgua by remember { mutableStateOf(false) }
     var incluiEnergia by remember { mutableStateOf(false) }
     var incluiInternet by remember { mutableStateOf(false) }
+
+    // Novas flags do banco de dados
+    var ehArejado by remember { mutableStateOf(false) }
+    var proximoTransporte by remember { mutableStateOf(false) }
 
     // Lista falsa para simular fotos anexadas
     var quantidadeFotos by remember { mutableStateOf(0) }
@@ -54,14 +65,13 @@ fun CadastroScreen(navController: NavController) {
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()) // Permite rolar a tela
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
 
             Text("Fotos do Imóvel", fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                // caixas simulando as fotos já adicionadas
                 items(quantidadeFotos) {
                     Box(
                         modifier = Modifier
@@ -73,7 +83,6 @@ fun CadastroScreen(navController: NavController) {
                         Text("Foto ${it + 1}", color = Color.DarkGray)
                     }
                 }
-                // botão de add foto (falso por enquanto)
                 item {
                     OutlinedCard(
                         onClick = { quantidadeFotos++ },
@@ -93,7 +102,6 @@ fun CadastroScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-
             OutlinedTextField(
                 value = titulo, onValueChange = { titulo = it },
                 label = { Text("Título do anúncio (Ex: Kitnet Centro)") },
@@ -104,6 +112,12 @@ fun CadastroScreen(navController: NavController) {
                 value = preco, onValueChange = { preco = it },
                 label = { Text("Valor do aluguel (R$)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = contato, onValueChange = { contato = it },
+                label = { Text("Contato (WhatsApp/Email)") },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -123,26 +137,53 @@ fun CadastroScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-
-            Text("Contas Inclusas no Valor", fontWeight = FontWeight.Bold)
+            Text("Características e Contas", fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
+
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Água")
+                Text("Água Inclusa")
                 Switch(checked = incluiAgua, onCheckedChange = { incluiAgua = it })
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Energia")
+                Text("Energia Inclusa")
                 Switch(checked = incluiEnergia, onCheckedChange = { incluiEnergia = it })
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Internet")
+                Text("Internet Inclusa")
                 Switch(checked = incluiInternet, onCheckedChange = { incluiInternet = it })
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Lugar Arejado")
+                Switch(checked = ehArejado, onCheckedChange = { ehArejado = it })
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Próximo a ônibus/rodoviária")
+                Switch(checked = proximoTransporte, onCheckedChange = { proximoTransporte = it })
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = { navController.popBackStack() },
+                onClick = {
+                    val usuarioId = FirebaseAuth.getInstance().currentUser?.uid ?: "usuario_desconhecido"
+
+                    val temContasInclusas = incluiAgua || incluiEnergia || incluiInternet
+
+                    val novoImovel = Imovel(
+                        usuarioUid = usuarioId,
+                        titulo = titulo,
+                        preco = preco.toDoubleOrNull() ?: 0.0, // Tratamento seguro caso digitem texto no lugar de número
+                        endereco = rua,
+                        quantidadeQuartos = quartos.toIntOrNull() ?: 0,
+                        contato = contato,
+                        contasInclusas = temContasInclusas,
+                        ehArejado = ehArejado,
+                        proximoAoTransporte = proximoTransporte
+                    )
+
+                    imovelViewModel.salvarImovel(novoImovel)
+                    navController.popBackStack()
+                },
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
                 Text("Publicar Anúncio")
