@@ -14,24 +14,32 @@ import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.example.homemates.model.imoveisMock
+import com.example.homemates.viewmodel.ImovelViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeedScreen(navController: NavController) {
-
+fun FeedScreen(
+    navController: NavController,
+    // 1. Injetamos o ViewModel do banco de dados
+    imovelViewModel: ImovelViewModel = viewModel(factory = ImovelViewModel.Factory)
+) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    // 2. Coletamos a lista do banco de dados em tempo real
+    val imoveis by imovelViewModel.todosOsImoveis.collectAsState()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -63,17 +71,9 @@ fun FeedScreen(navController: NavController) {
                     onClick = { scope.launch { drawerState.close() } },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
-                /*NavigationDrawerItem(
-                    icon = { Icon(Icons.Outlined.DarkMode, contentDescription = "Modo Noturno") },
-                    label = { Text("Modo Noturno") },
-                    selected = false,
-                    onClick = { scope.launch { drawerState.close() } },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                )*/
             }
         }
     ) {
-
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -92,50 +92,70 @@ fun FeedScreen(navController: NavController) {
                 }
             }
         ) { padding ->
-            LazyColumn(
-                modifier = Modifier.padding(padding).fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(imoveisMock) { imovel ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { navController.navigate("detalhes") },
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        Column {
-                            AsyncImage(
-                                model = imovel.fotoUri,
-                                contentDescription = "Foto do imóvel",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(180.dp),
-                                contentScale = ContentScale.Crop
-                            )
 
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(text = imovel.titulo, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                                    Text(text = "R$ ${imovel.preco}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                                }
+            // 3. Verificamos se há imóveis no banco
+            if (imoveis.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Nenhum imóvel cadastrado. Seja o primeiro!",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                // 4. Exibimos a lista real
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(padding)
+                        .fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(imoveis) { imovel ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { navController.navigate("detalhes") },
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            Column {
+                                AsyncImage(
+                                    // Coil lida perfeitamente se fotoUri for null
+                                    model = imovel.fotoUri ?: "https://via.placeholder.com/400x200.png?text=Sem+Foto",
+                                    contentDescription = "Foto do imóvel",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(180.dp),
+                                    contentScale = ContentScale.Crop
+                                )
 
-                                Spacer(modifier = Modifier.height(12.dp))
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(text = imovel.titulo, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                                        Text(text = "R$ ${imovel.preco}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                    }
 
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Outlined.DirectionsBus, contentDescription = "Ônibus", modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.secondary)
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(text = if (imovel.proximoAoTransporte) "Perto do transporte" else "Longe do transporte", style = MaterialTheme.typography.bodyMedium)
+                                    Spacer(modifier = Modifier.height(12.dp))
 
-                                    Spacer(modifier = Modifier.width(16.dp))
-
-                                    if (imovel.ehArejado) {
-                                        Icon(Icons.Outlined.Air, contentDescription = "Ventilado", modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.secondary)
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Outlined.DirectionsBus, contentDescription = "Ônibus", modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.secondary)
                                         Spacer(modifier = Modifier.width(4.dp))
-                                        Text(text = "Bem ventilado", style = MaterialTheme.typography.bodyMedium)
+                                        Text(text = if (imovel.proximoAoTransporte) "Perto do transporte" else "Longe do transporte", style = MaterialTheme.typography.bodyMedium)
+
+                                        Spacer(modifier = Modifier.width(16.dp))
+
+                                        if (imovel.ehArejado) {
+                                            Icon(Icons.Outlined.Air, contentDescription = "Ventilado", modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.secondary)
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text(text = "Bem ventilado", style = MaterialTheme.typography.bodyMedium)
+                                        }
                                     }
                                 }
                             }
