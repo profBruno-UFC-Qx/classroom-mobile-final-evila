@@ -26,10 +26,10 @@ fun MeusAnunciosScreen(
     navController: NavController,
     imovelViewModel: ImovelViewModel = viewModel(factory = ImovelViewModel.Factory)
 ) {
-    // 1. Coletamos a lista do Room (Persistência Local)
+
     val todosOsImoveisLocais by imovelViewModel.todosOsImoveis.collectAsState()
 
-    // 2. Filtramos para mostrar apenas os imóveis salvos por quem está logado agora
+
     val usuarioAtualUid = FirebaseAuth.getInstance().currentUser?.uid
     val meusImoveis = todosOsImoveisLocais.filter { it.usuarioUid == usuarioAtualUid }
 
@@ -86,7 +86,7 @@ fun MeusAnunciosScreen(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    // 1. O Botão de Editar
+                                    //Botão de Editar
                                     Button(
                                         onClick = {
                                             // Guarda o imóvel na memória e abre a tela de cadastro preenchida
@@ -100,7 +100,7 @@ fun MeusAnunciosScreen(
                                         Text("Editar")
                                     }
 
-                                    // 2. O Botão de Excluir
+                                    // Botão de Excluir
                                     OutlinedButton(
                                         onClick = {
                                             imovelViewModel.deletarImovel(imovel)

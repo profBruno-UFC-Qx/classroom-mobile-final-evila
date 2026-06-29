@@ -16,15 +16,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import android.net.Uri
+
 
 class ImovelViewModel(private val dao: ImovelDao) : ViewModel() {
 
     // Instância do banco de dados em nuvem
     private val firestore = FirebaseFirestore.getInstance()
 
-    // =========================================================================
-    // 1. O FLUXO LOCAL (Room) -> Usaremos para a tela "Meus Anúncios"
-    // =========================================================================
     val todosOsImoveis: StateFlow<List<Imovel>> = dao.listarTodosOsImoveis()
         .stateIn(
             scope = viewModelScope,
@@ -32,9 +31,6 @@ class ImovelViewModel(private val dao: ImovelDao) : ViewModel() {
             initialValue = emptyList()
         )
 
-    // =========================================================================
-    // 2. O FLUXO DA NUVEM (Firestore) -> Usaremos para o "Feed" Principal
-    // =========================================================================
     private val _imoveisDaNuvem = MutableStateFlow<List<Imovel>>(emptyList())
     val imoveisDaNuvem: StateFlow<List<Imovel>> = _imoveisDaNuvem.asStateFlow()
 
@@ -49,8 +45,7 @@ class ImovelViewModel(private val dao: ImovelDao) : ViewModel() {
         imovelSelecionado = imovel
     }
     private fun buscarImoveisDaNuvem() {
-        // O addSnapshotListener fica "ouvindo" o banco. Se outro usuário
-        // postar algo no celular dele, o seu Feed atualiza na mesma hora!
+
         firestore.collection("imoveis")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
@@ -85,15 +80,13 @@ class ImovelViewModel(private val dao: ImovelDao) : ViewModel() {
             }
     }
 
-    // =========================================================================
-    // 3. O SALVAMENTO ESPELHADO
-    // =========================================================================
+
     fun salvarImovel(imovel: Imovel) {
         viewModelScope.launch {
-            // Passo A: Salva fisicamente no celular (Room)
+            // Salva  no celular (Room)
             dao.inserirImovel(imovel)
 
-            // Passo B: Envia uma cópia para a nuvem (Firestore)
+            // Envia uma cópia para a nuvem (Firestore)
             firestore.collection("imoveis")
                 .add(imovel)
                 .addOnSuccessListener {
@@ -107,10 +100,10 @@ class ImovelViewModel(private val dao: ImovelDao) : ViewModel() {
 
     fun deletarImovel(imovel: Imovel) {
         viewModelScope.launch {
-            // 1. Apaga do banco local (Room) do celular
+            // Apaga do banco local (Room) do celular
             dao.deletarImovel(imovel)
 
-            // 2. Procura o anúncio exato na nuvem (Firestore) e apaga também
+            //Procura o anúncio exato na nuvem (Firestore) e apaga também
             firestore.collection("imoveis")
                 .whereEqualTo("usuarioUid", imovel.usuarioUid)
                 .whereEqualTo("titulo", imovel.titulo)
@@ -131,12 +124,12 @@ class ImovelViewModel(private val dao: ImovelDao) : ViewModel() {
                 }
         }
     }
-    // 1. Limpa a memória para garantir que o app saiba quando é um anúncio NOVO
+    //Limpa a memória para garantir que o app saiba quando é um anúncio novo
     fun limparSelecao() {
         imovelSelecionado = null
     }
 
-    // 2. Faz o "Update" espelhado (Room e Nuvem)
+    //Faz o "Update" espelhado (Room e Nuvem)
     fun atualizarImovel(imovelAntigo: Imovel, imovelNovo: Imovel) {
         viewModelScope.launch {
             // Atualiza no banco local (Room) usando o mesmo ID
@@ -158,13 +151,10 @@ class ImovelViewModel(private val dao: ImovelDao) : ViewModel() {
         }
     }
 
-    // =========================================================================
-    // LÓGICA DE FAVORITOS (Apenas Banco Local - Room)
-    // =========================================================================
 
     fun favoritarImovelLocal(imovel: Imovel) {
         viewModelScope.launch {
-            // Ignora o ID da nuvem para o Room gerar um ID local novo automaticamente
+
             val imovelParaSalvar = imovel.copy(id = 0)
             dao.inserirImovel(imovelParaSalvar)
         }
@@ -175,6 +165,20 @@ class ImovelViewModel(private val dao: ImovelDao) : ViewModel() {
             dao.deletarImovel(imovelLocal)
         }
     }
+
+    fun salvarOuAtualizarComFoto(imovelAntigo: Imovel?, novoImovel: Imovel, uriFotoLocal: Uri?) {
+
+        val uriString = uriFotoLocal?.toString()
+
+        val imovelFinal = novoImovel.copy(fotoUri = uriString)
+
+        if (imovelAntigo != null) {
+            atualizarImovel(imovelAntigo, imovelFinal)
+        } else {
+            salvarImovel(imovelFinal)
+        }
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")

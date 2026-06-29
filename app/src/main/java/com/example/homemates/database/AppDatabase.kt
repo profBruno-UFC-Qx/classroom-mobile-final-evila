@@ -6,7 +6,6 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.homemates.model.Imovel
 
-// MUDANÇA AQUI: version = 2
 @Database(entities = [Imovel::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 

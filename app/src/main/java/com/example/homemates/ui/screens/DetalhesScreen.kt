@@ -27,12 +27,12 @@ import com.example.homemates.viewmodel.ImovelViewModel
 @Composable
 fun DetalhesScreen(
     navController: NavController,
-    imovelViewModel: ImovelViewModel // Recebe o ViewModel central
+    imovelViewModel: ImovelViewModel
 ) {
-    // 1. Puxa da memória o imóvel que foi clicado no Feed
+
     val imovel = imovelViewModel.imovelSelecionado
 
-    // Se houver algum bug e chegar nulo, volta para a tela anterior por segurança
+
     if (imovel == null) {
         LaunchedEffect(Unit) {
             navController.popBackStack()
@@ -66,7 +66,7 @@ fun DetalhesScreen(
                 contentPadding = PaddingValues(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Se não tiver foto, mostramos uma genérica via Coil
+                // Se não tiver foto, mostra uma genérica via Coil
                 val urlImagem = imovel.fotoUri ?: "https://via.placeholder.com/400x200.png?text=Sem+Foto"
 
                 item {
@@ -133,7 +133,6 @@ fun DetalhesScreen(
 
                 Button(
                     onClick = {
-                        // Futuramente conectaremos isso a uma Intent de WhatsApp usando o imovel.contato
                     },
                     modifier = Modifier.fillMaxWidth().height(50.dp)
                 ) {

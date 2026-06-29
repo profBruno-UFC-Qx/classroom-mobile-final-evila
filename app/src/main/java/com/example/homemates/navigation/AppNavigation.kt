@@ -24,7 +24,7 @@ fun AppNavigation() {
     val usuarioAtual = remember { auth.currentUser }
     val rotaInicial = remember { if (usuarioAtual != null) "feed" else "login" }
 
-    // 1. Criamos UMA ÚNICA instância do ViewModel (O Garçom Principal)
+
     val imovelViewModel: ImovelViewModel = viewModel(factory = ImovelViewModel.Factory)
 
     NavHost(navController = navController, startDestination = rotaInicial) {

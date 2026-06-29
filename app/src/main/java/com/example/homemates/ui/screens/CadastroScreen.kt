@@ -23,6 +23,12 @@ import androidx.navigation.NavController
 import com.example.homemates.model.Imovel
 import com.example.homemates.viewmodel.ImovelViewModel
 import com.google.firebase.auth.FirebaseAuth
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +54,21 @@ fun CadastroScreen(
     var ehArejado by remember { mutableStateOf(imovelEdicao?.ehArejado ?: false) }
     var proximoTransporte by remember { mutableStateOf(imovelEdicao?.proximoAoTransporte ?: false) }
 
-    var quantidadeFotos by remember { mutableStateOf(0) }
+
+    // Guarda a URI da imagem (se for edição, tenta carregar o link que já existe)
+    var fotoSelecionadaUri by remember {
+        mutableStateOf<Uri?>(if (ehEdicao && imovelEdicao?.fotoUri != null) Uri.parse(imovelEdicao.fotoUri) else null)
+    }
+
+    // abre a galeria do celular
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uriSelecionada ->
+            if (uriSelecionada != null) {
+                fotoSelecionadaUri = uriSelecionada
+            }
+        }
+    )
 
     Scaffold(
         topBar = {
@@ -77,28 +97,41 @@ fun CadastroScreen(
 
             Text("Fotos do Imóvel", fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(quantidadeFotos) {
-                    Box(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color.LightGray),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Foto ${it + 1}", color = Color.DarkGray)
-                    }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+
+                if (fotoSelecionadaUri != null) {
+                    AsyncImage(
+                        model = fotoSelecionadaUri,
+                        contentDescription = "Foto selecionada",
+                        modifier = Modifier.size(100.dp).clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
                 }
-                item {
-                    OutlinedCard(onClick = { quantidadeFotos++ }, modifier = Modifier.size(100.dp)) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(Icons.Filled.AddPhotoAlternate, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                            Text("Adicionar", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
-                        }
+
+                // O Botão de abrir a galeria
+                OutlinedCard(
+                    onClick = {
+                        photoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
+                    modifier = Modifier.size(100.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(Icons.Filled.AddPhotoAlternate, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Text(
+                            text = if (fotoSelecionadaUri == null) "Adicionar" else "Trocar",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }
@@ -191,12 +224,11 @@ fun CadastroScreen(
                         proximoAoTransporte = proximoTransporte
                     )
 
-                    // LÓGICA DO UPDATE: Se estiver editando, chama atualizar. Se não, salvar.
-                    if (ehEdicao && imovelEdicao != null) {
-                        imovelViewModel.atualizarImovel(imovelEdicao, novoImovel)
-                    } else {
-                        imovelViewModel.salvarImovel(novoImovel)
-                    }
+                    imovelViewModel.salvarOuAtualizarComFoto(
+                        imovelAntigo = if (ehEdicao) imovelEdicao else null,
+                        novoImovel = novoImovel,
+                        uriFotoLocal = fotoSelecionadaUri
+                    )
 
                     imovelViewModel.limparSelecao() // Limpa a memória
                     navController.navigate("feed") { // Força a volta para o feed para limpar a pilha

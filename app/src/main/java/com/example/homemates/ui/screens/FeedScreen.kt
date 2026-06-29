@@ -73,7 +73,6 @@ fun FeedScreen(
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
 
-                // NOVO: Link para a tela de Favoritos
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Outlined.FavoriteBorder, contentDescription = "Favoritos") },
                     label = { Text("Meus Favoritos") },
@@ -122,7 +121,7 @@ fun FeedScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(imoveis) { imovel ->
+                    items(imoveis.reversed()) { imovel ->
 
                         val imovelSalvoNoRoom = imoveisLocais.find {
                             it.titulo == imovel.titulo && it.usuarioUid == imovel.usuarioUid
@@ -140,14 +139,13 @@ fun FeedScreen(
                         ) {
                             Column {
                                 AsyncImage(
-                                    model = imovel.fotoUri ?: "https://via.placeholder.com/400x200.png?text=Sem+Foto",
+                                    model = imovel.fotoUri ?: "https://i.pinimg.com/736x/70/65/91/706591c88cf7ba52e4dd1a60f0a1387f.jpg",
                                     contentDescription = "Foto do imóvel",
                                     modifier = Modifier.fillMaxWidth().height(180.dp),
                                     contentScale = ContentScale.Crop
                                 )
 
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    // NOVO LAYOUT: Preço embaixo do título
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.SpaceBetween,

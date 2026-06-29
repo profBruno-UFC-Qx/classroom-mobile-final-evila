@@ -6,7 +6,7 @@ import com.google.firebase.auth.FirebaseAuth
 class AuthViewModel : ViewModel() {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
-    // Função para criar uma conta nova
+
     fun cadastrarUsuario(email: String, senha: String, onSucesso: () -> Unit, onErro: (String) -> Unit) {
         if (email.isBlank() || senha.isBlank()) {
             onErro("Preencha todos os campos")
@@ -22,7 +22,7 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    // Função para fazer o login
+
     fun fazerLogin(email: String, senha: String, onSucesso: () -> Unit, onErro: (String) -> Unit) {
         if (email.isBlank() || senha.isBlank()) {
             onErro("Preencha todos os campos")
