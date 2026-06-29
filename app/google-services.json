@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "332611616370",
+    "project_id": "homemates-488cd",
+    "storage_bucket": "homemates-488cd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:332611616370:android:813ef609d033b6c56b0ceb",
+        "android_client_info": {
+          "package_name": "com.example.homemates"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPLR0Eno8xULQBj8lrMk_9vrAoVkVz06U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
