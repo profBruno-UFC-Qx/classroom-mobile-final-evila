@@ -10,6 +10,7 @@ import com.example.homemates.ui.screens.CadastroUsuarioScreen
 import com.example.homemates.ui.screens.CadastroScreen
 import com.example.homemates.ui.screens.DetalhesScreen
 import com.example.homemates.ui.screens.FeedScreen
+import com.example.homemates.ui.screens.MeusAnunciosScreen
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
@@ -32,5 +33,7 @@ fun AppNavigation() {
         composable("feed") { FeedScreen(navController) }
         composable("detalhes") { DetalhesScreen(navController) }
         composable("cadastro") { CadastroScreen(navController) }
+        composable(route = "meus_anuncios") { MeusAnunciosScreen(navController) }
+
     }
 }

@@ -38,8 +38,8 @@ fun FeedScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    // 2. Coletamos a lista do banco de dados em tempo real
-    val imoveis by imovelViewModel.todosOsImoveis.collectAsState()
+
+    val imoveis by imovelViewModel.imoveisDaNuvem.collectAsState()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -68,7 +68,7 @@ fun FeedScreen(
                     icon = { Icon(Icons.Outlined.List, contentDescription = "Anúncios") },
                     label = { Text("Meus Anúncios") },
                     selected = false,
-                    onClick = { scope.launch { drawerState.close() } },
+                    onClick = { navController.navigate("meus_anuncios") },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
             }
