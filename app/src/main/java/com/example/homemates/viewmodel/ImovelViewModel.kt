@@ -157,6 +157,24 @@ class ImovelViewModel(private val dao: ImovelDao) : ViewModel() {
                 }
         }
     }
+
+    // =========================================================================
+    // LÓGICA DE FAVORITOS (Apenas Banco Local - Room)
+    // =========================================================================
+
+    fun favoritarImovelLocal(imovel: Imovel) {
+        viewModelScope.launch {
+            // Ignora o ID da nuvem para o Room gerar um ID local novo automaticamente
+            val imovelParaSalvar = imovel.copy(id = 0)
+            dao.inserirImovel(imovelParaSalvar)
+        }
+    }
+
+    fun removerFavoritoLocal(imovelLocal: Imovel) {
+        viewModelScope.launch {
+            dao.deletarImovel(imovelLocal)
+        }
+    }
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")

@@ -10,6 +10,7 @@ import com.example.homemates.ui.screens.LoginScreen
 import com.example.homemates.ui.screens.CadastroUsuarioScreen
 import com.example.homemates.ui.screens.CadastroScreen
 import com.example.homemates.ui.screens.DetalhesScreen
+import com.example.homemates.ui.screens.FavoritosScreen
 import com.example.homemates.ui.screens.FeedScreen
 import com.example.homemates.ui.screens.MeusAnunciosScreen
 import com.example.homemates.viewmodel.ImovelViewModel
@@ -32,7 +33,6 @@ fun AppNavigation() {
 
         composable("cadastro_usuario") { CadastroUsuarioScreen(navController = navController) }
 
-        // 2. Entregamos o MESMO ViewModel para todas as telas
         composable("feed") { FeedScreen(navController, imovelViewModel) }
 
         composable("detalhes") { DetalhesScreen(navController, imovelViewModel) }
@@ -40,5 +40,7 @@ fun AppNavigation() {
         composable("cadastro") { CadastroScreen(navController, imovelViewModel) }
 
         composable("meus_anuncios") { MeusAnunciosScreen(navController, imovelViewModel) }
+
+        composable("favoritos") { FavoritosScreen(navController, imovelViewModel) }
     }
 }

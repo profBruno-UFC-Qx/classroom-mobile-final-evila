@@ -8,10 +8,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.Air
-import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DirectionsBus
 import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -19,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -32,14 +34,13 @@ import kotlinx.coroutines.launch
 @Composable
 fun FeedScreen(
     navController: NavController,
-    // 1. Injetamos o ViewModel do banco de dados
     imovelViewModel: ImovelViewModel = viewModel(factory = ImovelViewModel.Factory)
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-
     val imoveis by imovelViewModel.imoveisDaNuvem.collectAsState()
+    val imoveisLocais by imovelViewModel.todosOsImoveis.collectAsState()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -71,6 +72,15 @@ fun FeedScreen(
                     onClick = { navController.navigate("meus_anuncios") },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
+
+                // NOVO: Link para a tela de Favoritos
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Outlined.FavoriteBorder, contentDescription = "Favoritos") },
+                    label = { Text("Meus Favoritos") },
+                    selected = false,
+                    onClick = { navController.navigate("favoritos") },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
             }
         }
     ) {
@@ -88,7 +98,7 @@ fun FeedScreen(
             },
             floatingActionButton = {
                 FloatingActionButton(onClick = {
-                    imovelViewModel.limparSelecao() // LIMPA A MEMÓRIA AQUI!
+                    imovelViewModel.limparSelecao()
                     navController.navigate("cadastro")
                 }) {
                     Icon(Icons.Filled.Add, contentDescription = "Adicionar Anúncio")
@@ -96,12 +106,9 @@ fun FeedScreen(
             }
         ) { padding ->
 
-            // 3. Verificamos se há imóveis no banco
             if (imoveis.isEmpty()) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
+                    modifier = Modifier.fillMaxSize().padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -110,42 +117,69 @@ fun FeedScreen(
                     )
                 }
             } else {
-                // 4. Exibimos a lista real
                 LazyColumn(
-                    modifier = Modifier
-                        .padding(padding)
-                        .fillMaxSize(),
+                    modifier = Modifier.padding(padding).fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(imoveis) { imovel ->
+
+                        val imovelSalvoNoRoom = imoveisLocais.find {
+                            it.titulo == imovel.titulo && it.usuarioUid == imovel.usuarioUid
+                        }
+                        val isFavorito = imovelSalvoNoRoom != null
+
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    imovelViewModel.selecionarImovel(imovel) // Guarda o imóvel na memória
-                                    navController.navigate("detalhes")       // Vai para a tela
+                                    imovelViewModel.selecionarImovel(imovel)
+                                    navController.navigate("detalhes")
                                 },
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             Column {
                                 AsyncImage(
-                                    // Coil lida perfeitamente se fotoUri for null
                                     model = imovel.fotoUri ?: "https://via.placeholder.com/400x200.png?text=Sem+Foto",
                                     contentDescription = "Foto do imóvel",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(180.dp),
+                                    modifier = Modifier.fillMaxWidth().height(180.dp),
                                     contentScale = ContentScale.Crop
                                 )
 
                                 Column(modifier = Modifier.padding(16.dp)) {
+                                    // NOVO LAYOUT: Preço embaixo do título
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(text = imovel.titulo, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                                        Text(text = "R$ ${imovel.preco}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = imovel.titulo,
+                                                fontWeight = FontWeight.Bold,
+                                                style = MaterialTheme.typography.titleMedium
+                                            )
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(
+                                                text = "R$ ${imovel.preco}",
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+
+                                        IconButton(onClick = {
+                                            if (isFavorito && imovelSalvoNoRoom != null) {
+                                                imovelViewModel.removerFavoritoLocal(imovelSalvoNoRoom)
+                                            } else {
+                                                imovelViewModel.favoritarImovelLocal(imovel)
+                                            }
+                                        }) {
+                                            Icon(
+                                                imageVector = if (isFavorito) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                                                contentDescription = "Favoritar",
+                                                tint = if (isFavorito) Color.Red else Color.Gray
+                                            )
+                                        }
                                     }
 
                                     Spacer(modifier = Modifier.height(12.dp))
