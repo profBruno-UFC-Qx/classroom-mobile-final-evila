@@ -42,7 +42,12 @@ class ImovelViewModel(private val dao: ImovelDao) : ViewModel() {
         // Assim que o ViewModel nasce, ele começa a escutar a nuvem
         buscarImoveisDaNuvem()
     }
+    var imovelSelecionado: Imovel? = null
+        private set
 
+    fun selecionarImovel(imovel: Imovel) {
+        imovelSelecionado = imovel
+    }
     private fun buscarImoveisDaNuvem() {
         // O addSnapshotListener fica "ouvindo" o banco. Se outro usuário
         // postar algo no celular dele, o seu Feed atualiza na mesma hora!

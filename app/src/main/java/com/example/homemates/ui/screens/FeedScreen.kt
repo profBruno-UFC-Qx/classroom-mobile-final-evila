@@ -119,7 +119,10 @@ fun FeedScreen(
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { navController.navigate("detalhes") },
+                                .clickable {
+                                    imovelViewModel.selecionarImovel(imovel) // Guarda o imóvel na memória
+                                    navController.navigate("detalhes")       // Vai para a tela
+                                },
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             Column {

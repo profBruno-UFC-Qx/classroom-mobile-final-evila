@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,12 +20,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.example.homemates.model.imoveisMock
+import com.example.homemates.viewmodel.ImovelViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetalhesScreen(navController: NavController) {
-    val imovel = imoveisMock.first()
+fun DetalhesScreen(
+    navController: NavController,
+    imovelViewModel: ImovelViewModel // Recebe o ViewModel central
+) {
+    // 1. Puxa da memória o imóvel que foi clicado no Feed
+    val imovel = imovelViewModel.imovelSelecionado
+
+    // Se houver algum bug e chegar nulo, volta para a tela anterior por segurança
+    if (imovel == null) {
+        LaunchedEffect(Unit) {
+            navController.popBackStack()
+        }
+        return
+    }
 
     Scaffold(
         topBar = {
@@ -51,7 +64,10 @@ fun DetalhesScreen(navController: NavController) {
                 contentPadding = PaddingValues(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(listOfNotNull(imovel.fotoUri)) { urlImagem ->
+                // Se não tiver foto, mostramos uma genérica via Coil
+                val urlImagem = imovel.fotoUri ?: "https://via.placeholder.com/400x200.png?text=Sem+Foto"
+
+                item {
                     AsyncImage(
                         model = urlImagem,
                         contentDescription = "Foto do local",
@@ -93,15 +109,20 @@ fun DetalhesScreen(navController: NavController) {
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
-                Text(text = "Sobre o local:", fontWeight = FontWeight.Bold)
-                Text(text = imovel.detalhesOpcionais)
 
-                Spacer(modifier = Modifier.height(32.dp))
+                if (imovel.detalhesOpcionais.isNotEmpty()) {
+                    Text(text = "Sobre o local:", fontWeight = FontWeight.Bold)
+                    Text(text = imovel.detalhesOpcionais)
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
+
                 Button(
-                    onClick = { },
+                    onClick = {
+                        // Futuramente conectaremos isso a uma Intent de WhatsApp usando o imovel.contato
+                    },
                     modifier = Modifier.fillMaxWidth().height(50.dp)
                 ) {
-                    Text("Entrar em contato")
+                    Text("Entrar em contato (${imovel.contato})")
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
