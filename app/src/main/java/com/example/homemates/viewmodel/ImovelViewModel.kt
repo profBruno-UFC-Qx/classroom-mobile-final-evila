@@ -59,10 +59,9 @@ class ImovelViewModel(private val dao: ImovelDao) : ViewModel() {
                 }
 
                 if (snapshot != null) {
-                    // Mapeamento manual do documento NoSQL para a nossa Entidade Kotlin
                     val listaDeImoveis = snapshot.documents.map { doc ->
                         Imovel(
-                            id = 0, // Ignoramos o ID do Room para o Feed da nuvem
+                            id = 0,
                             usuarioUid = doc.getString("usuarioUid") ?: "",
                             titulo = doc.getString("titulo") ?: "",
                             endereco = doc.getString("endereco") ?: "",
@@ -70,7 +69,12 @@ class ImovelViewModel(private val dao: ImovelDao) : ViewModel() {
                             detalhesOpcionais = doc.getString("detalhesOpcionais") ?: "",
                             preco = doc.getDouble("preco") ?: 0.0,
                             quantidadeQuartos = doc.getLong("quantidadeQuartos")?.toInt() ?: 0,
-                            contasInclusas = doc.getBoolean("contasInclusas") ?: false,
+
+                            // Mapeamento das novas variáveis
+                            incluiAgua = doc.getBoolean("incluiAgua") ?: false,
+                            incluiEnergia = doc.getBoolean("incluiEnergia") ?: false,
+                            incluiInternet = doc.getBoolean("incluiInternet") ?: false,
+
                             ehArejado = doc.getBoolean("ehArejado") ?: false,
                             proximoAoTransporte = doc.getBoolean("proximoAoTransporte") ?: false,
                             fotoUri = doc.getString("fotoUri")
@@ -127,7 +131,32 @@ class ImovelViewModel(private val dao: ImovelDao) : ViewModel() {
                 }
         }
     }
+    // 1. Limpa a memória para garantir que o app saiba quando é um anúncio NOVO
+    fun limparSelecao() {
+        imovelSelecionado = null
+    }
 
+    // 2. Faz o "Update" espelhado (Room e Nuvem)
+    fun atualizarImovel(imovelAntigo: Imovel, imovelNovo: Imovel) {
+        viewModelScope.launch {
+            // Atualiza no banco local (Room) usando o mesmo ID
+            val imovelComMesmoId = imovelNovo.copy(id = imovelAntigo.id)
+            dao.inserirImovel(imovelComMesmoId) // O comando REPLACE do Room faz isso virar um Update
+
+            // Atualiza na Nuvem (Firestore) procurando pelo título e endereço
+            firestore.collection("imoveis")
+                .whereEqualTo("usuarioUid", imovelAntigo.usuarioUid)
+                .whereEqualTo("titulo", imovelAntigo.titulo)
+                .whereEqualTo("endereco", imovelAntigo.endereco)
+                .get()
+                .addOnSuccessListener { querySnapshot ->
+                    for (document in querySnapshot) {
+                        // Substitui os dados antigos pelos novos
+                        document.reference.set(imovelNovo)
+                    }
+                }
+        }
+    }
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")

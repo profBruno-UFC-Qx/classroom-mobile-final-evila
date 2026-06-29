@@ -1,5 +1,6 @@
 package com.example.homemates.ui.screens
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -51,6 +52,7 @@ fun DetalhesScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
             )
         }
+
     ) { padding ->
 
         Column(
@@ -99,20 +101,33 @@ fun DetalhesScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Text(text = "Incluso no valor:", fontWeight = FontWeight.Bold)
+                Text(text = "Comodidades e Contas:", fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (imovel.contasInclusas) AssistChip(onClick = {}, label = { Text("Contas Inclusas") }, leadingIcon = { Icon(Icons.Outlined.WaterDrop, null) })
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()), // Permite arrastar os chips para o lado
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (imovel.incluiAgua) AssistChip(onClick = {}, label = { Text("Água") }, leadingIcon = { Icon(Icons.Outlined.WaterDrop, null) })
+                    if (imovel.incluiEnergia) AssistChip(onClick = {}, label = { Text("Energia") }, leadingIcon = { Icon(Icons.Outlined.Bolt, null) })
+                    if (imovel.incluiInternet) AssistChip(onClick = {}, label = { Text("Internet") }, leadingIcon = { Icon(Icons.Outlined.Wifi, null) })
+                    if (imovel.ehArejado) AssistChip(onClick = {}, label = { Text("Arejado") }, leadingIcon = { Icon(Icons.Outlined.Air, null) })
+                    if (imovel.proximoAoTransporte) AssistChip(onClick = {}, label = { Text("Transporte") }, leadingIcon = { Icon(Icons.Outlined.DirectionsBus, null) })
                 }
-                if (!imovel.contasInclusas) {
-                    Text(text = "Nenhuma conta inclusa no aluguel.", style = MaterialTheme.typography.bodyMedium)
+
+                // Caso o usuário não tenha marcado nenhuma opção
+                if (!imovel.incluiAgua && !imovel.incluiEnergia && !imovel.incluiInternet && !imovel.ehArejado && !imovel.proximoAoTransporte) {
+                    Text(text = "Nenhuma comodidade adicional especificada.", style = MaterialTheme.typography.bodyMedium)
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                if (imovel.detalhesOpcionais.isNotEmpty()) {
+                if (imovel.detalhesOpcionais.isNotBlank()) {
                     Text(text = "Sobre o local:", fontWeight = FontWeight.Bold)
-                    Text(text = imovel.detalhesOpcionais)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = imovel.detalhesOpcionais, style = MaterialTheme.typography.bodyMedium)
                     Spacer(modifier = Modifier.height(32.dp))
                 }
 

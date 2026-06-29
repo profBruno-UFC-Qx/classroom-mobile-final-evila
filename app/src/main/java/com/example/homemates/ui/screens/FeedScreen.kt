@@ -87,7 +87,10 @@ fun FeedScreen(
                 )
             },
             floatingActionButton = {
-                FloatingActionButton(onClick = { navController.navigate("cadastro") }) {
+                FloatingActionButton(onClick = {
+                    imovelViewModel.limparSelecao() // LIMPA A MEMÓRIA AQUI!
+                    navController.navigate("cadastro")
+                }) {
                     Icon(Icons.Filled.Add, contentDescription = "Adicionar Anúncio")
                 }
             }

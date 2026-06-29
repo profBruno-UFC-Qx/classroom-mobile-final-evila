@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -81,17 +82,36 @@ fun MeusAnunciosScreen(
 
                                 Spacer(modifier = Modifier.height(12.dp))
 
-                                // 3. O Botão de Excluir (Delete Local)
-                                OutlinedButton(
-                                    onClick = {
-                                        imovelViewModel.deletarImovel(imovel)
-                                    },
+                                Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Icon(Icons.Filled.Delete, contentDescription = "Excluir")
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Excluir Anúncio")
+                                    // 1. O Botão de Editar
+                                    Button(
+                                        onClick = {
+                                            // Guarda o imóvel na memória e abre a tela de cadastro preenchida
+                                            imovelViewModel.selecionarImovel(imovel)
+                                            navController.navigate("cadastro")
+                                        },
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Icon(Icons.Filled.Edit, contentDescription = "Editar", modifier = Modifier.size(18.dp))
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text("Editar")
+                                    }
+
+                                    // 2. O Botão de Excluir
+                                    OutlinedButton(
+                                        onClick = {
+                                            imovelViewModel.deletarImovel(imovel)
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                                    ) {
+                                        Icon(Icons.Filled.Delete, contentDescription = "Excluir", modifier = Modifier.size(18.dp))
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text("Excluir")
+                                    }
                                 }
                             }
                         }

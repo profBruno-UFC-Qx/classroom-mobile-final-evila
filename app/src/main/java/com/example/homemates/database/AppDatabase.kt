@@ -1,19 +1,17 @@
 package com.example.homemates.database
 
-
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.homemates.model.Imovel
 
-// Aqui dizemos quais tabelas existem e a versão do banco
-@Database(entities = [Imovel::class], version = 1, exportSchema = false)
+// MUDANÇA AQUI: version = 2
+@Database(entities = [Imovel::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun imovelDao(): ImovelDao
 
-    // O companion object garante que abriremos apenas UMA conexão com o banco
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -24,7 +22,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "homemates_database"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration() // MUDANÇA AQUI: Evita que o app feche ao mudar as colunas
+                    .build()
                 INSTANCE = instance
                 instance
             }

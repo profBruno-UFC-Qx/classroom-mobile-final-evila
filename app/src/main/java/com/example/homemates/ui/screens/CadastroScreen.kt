@@ -19,7 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.homemates.model.Imovel
 import com.example.homemates.viewmodel.ImovelViewModel
@@ -29,31 +28,38 @@ import com.google.firebase.auth.FirebaseAuth
 @Composable
 fun CadastroScreen(
     navController: NavController,
-    imovelViewModel: ImovelViewModel = viewModel(factory = ImovelViewModel.Factory)
+    imovelViewModel: ImovelViewModel
 ) {
-    var titulo by remember { mutableStateOf("") }
-    var preco by remember { mutableStateOf("") }
-    var rua by remember { mutableStateOf("") }
-    var quartos by remember { mutableStateOf("") }
-    var contato by remember { mutableStateOf("") } // Novo campo para o WhatsApp/Telefone
+    // Verifica se tem algum imóvel na memória para ser editado
+    val imovelEdicao = imovelViewModel.imovelSelecionado
+    val ehEdicao = imovelEdicao != null
 
-    var incluiAgua by remember { mutableStateOf(false) }
-    var incluiEnergia by remember { mutableStateOf(false) }
-    var incluiInternet by remember { mutableStateOf(false) }
+    // Se for edição, já preenche os campos. Se não, fica vazio.
+    var titulo by remember { mutableStateOf(imovelEdicao?.titulo ?: "") }
+    var preco by remember { mutableStateOf(if (ehEdicao) imovelEdicao!!.preco.toString() else "") }
+    var rua by remember { mutableStateOf(imovelEdicao?.endereco ?: "") }
+    var quartos by remember { mutableStateOf(if (ehEdicao) imovelEdicao!!.quantidadeQuartos.toString() else "") }
+    var contato by remember { mutableStateOf(imovelEdicao?.contato ?: "") }
+    var detalhesOpcionais by remember { mutableStateOf(imovelEdicao?.detalhesOpcionais ?: "") }
 
-    // Novas flags do banco de dados
-    var ehArejado by remember { mutableStateOf(false) }
-    var proximoTransporte by remember { mutableStateOf(false) }
+    var incluiAgua by remember { mutableStateOf(imovelEdicao?.incluiAgua ?: false) }
+    var incluiEnergia by remember { mutableStateOf(imovelEdicao?.incluiEnergia ?: false) }
+    var incluiInternet by remember { mutableStateOf(imovelEdicao?.incluiInternet ?: false) }
+    var ehArejado by remember { mutableStateOf(imovelEdicao?.ehArejado ?: false) }
+    var proximoTransporte by remember { mutableStateOf(imovelEdicao?.proximoAoTransporte ?: false) }
 
-    // Lista falsa para simular fotos anexadas
     var quantidadeFotos by remember { mutableStateOf(0) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Novo Anúncio") },
+                // Muda o título da tela dependendo do modo
+                title = { Text(if (ehEdicao) "Editar Anúncio" else "Novo Anúncio") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = {
+                        imovelViewModel.limparSelecao() // Limpa se o usuário desistir e voltar
+                        navController.popBackStack()
+                    }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Voltar")
                     }
                 },
@@ -84,10 +90,7 @@ fun CadastroScreen(
                     }
                 }
                 item {
-                    OutlinedCard(
-                        onClick = { quantidadeFotos++ },
-                        modifier = Modifier.size(100.dp)
-                    ) {
+                    OutlinedCard(onClick = { quantidadeFotos++ }, modifier = Modifier.size(100.dp)) {
                         Column(
                             modifier = Modifier.fillMaxSize(),
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -104,7 +107,7 @@ fun CadastroScreen(
 
             OutlinedTextField(
                 value = titulo, onValueChange = { titulo = it },
-                label = { Text("Título do anúncio (Ex: Kitnet Centro)") },
+                label = { Text("Título do anúncio") },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -119,6 +122,13 @@ fun CadastroScreen(
                 value = contato, onValueChange = { contato = it },
                 label = { Text("Contato (WhatsApp/Email)") },
                 modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = detalhesOpcionais, onValueChange = { detalhesOpcionais = it },
+                label = { Text("Detalhes Adicionais (Opcional)") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -166,27 +176,36 @@ fun CadastroScreen(
             Button(
                 onClick = {
                     val usuarioId = FirebaseAuth.getInstance().currentUser?.uid ?: "usuario_desconhecido"
-
-                    val temContasInclusas = incluiAgua || incluiEnergia || incluiInternet
-
                     val novoImovel = Imovel(
                         usuarioUid = usuarioId,
                         titulo = titulo,
-                        preco = preco.toDoubleOrNull() ?: 0.0, // Tratamento seguro caso digitem texto no lugar de número
+                        preco = preco.toDoubleOrNull() ?: 0.0,
                         endereco = rua,
                         quantidadeQuartos = quartos.toIntOrNull() ?: 0,
                         contato = contato,
-                        contasInclusas = temContasInclusas,
+                        detalhesOpcionais = detalhesOpcionais,
+                        incluiAgua = incluiAgua,
+                        incluiEnergia = incluiEnergia,
+                        incluiInternet = incluiInternet,
                         ehArejado = ehArejado,
                         proximoAoTransporte = proximoTransporte
                     )
 
-                    imovelViewModel.salvarImovel(novoImovel)
-                    navController.popBackStack()
+                    // LÓGICA DO UPDATE: Se estiver editando, chama atualizar. Se não, salvar.
+                    if (ehEdicao && imovelEdicao != null) {
+                        imovelViewModel.atualizarImovel(imovelEdicao, novoImovel)
+                    } else {
+                        imovelViewModel.salvarImovel(novoImovel)
+                    }
+
+                    imovelViewModel.limparSelecao() // Limpa a memória
+                    navController.navigate("feed") { // Força a volta para o feed para limpar a pilha
+                        popUpTo("feed") { inclusive = true }
+                    }
                 },
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
-                Text("Publicar Anúncio")
+                Text(if (ehEdicao) "Salvar Alterações" else "Publicar Anúncio")
             }
         }
     }
